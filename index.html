@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SWE-Test Demo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0d1117;color:#c9d1d9;line-height:1.7}
+header{text-align:center;padding:40px 20px 24px;border-bottom:1px solid #21262d}
+header h1{color:#58a6ff;font-size:2.1em}
+.sub{color:#8b949e;margin-top:6px;font-size:1.05em}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+h2{color:#f0f6fc;margin:24px 0 14px;font-size:1.35em}
+h3{color:#58a6ff;margin:18px 0 8px;font-size:1.1em}
+h4{color:#8b949e;font-size:.82em;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+
+/* Metric cards */
+.mg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:20px 0 30px}
+.mc{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:18px;text-align:center;transition:all .3s;cursor:default}
+.mc:hover{border-color:#58a6ff;box-shadow:0 0 12px rgba(88,166,255,.15)}
+.mc.hl{border-color:#f78166;box-shadow:0 0 16px rgba(247,129,102,.25)}
+.mc .icon{font-size:1.8em;margin-bottom:6px}
+.mc h3{font-size:.95em;color:#f0f6fc;margin:0 0 4px}
+.mc p{font-size:.8em;color:#8b949e;margin:0}
+
+/* Tabs */
+.tabs{display:flex;gap:2px;border-bottom:2px solid #21262d;margin:0 0 4px}
+.tab{background:none;border:none;color:#8b949e;padding:12px 18px;cursor:pointer;font-size:.92em;border-bottom:2px solid transparent;transition:all .2s;margin-bottom:-2px}
+.tab:hover{color:#c9d1d9}
+.tab.on{color:#58a6ff;border-bottom-color:#58a6ff;font-weight:600}
+
+/* Panels */
+.panel{display:none;padding:20px 0 60px}
+.panel.on{display:block}
+
+/* Tags */
+.tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.78em;margin-right:4px}
+.tag.blue{background:#1f6feb33;color:#58a6ff}
+.tag.orange{background:#f7816633;color:#f78166}
+.tag.green{background:#3fb95033;color:#3fb950}
+.tag.red{background:#f8514933;color:#f85149}
+
+/* Info boxes */
+.igrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+.ibox{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:14px}
+
+/* Call stack */
+.callstack{font-family:"Fira Code",monospace;font-size:.85em;background:#161b22;border:1px solid #30363d;border-radius:8px;padding:14px;margin:10px 0;overflow-x:auto}
+.callstack .level{padding:2px 0;color:#8b949e}
+.callstack .level.target{color:#f78166;font-weight:700}
+.callstack .arrow{color:#484f58;margin:0 4px}
+
+/* Metrics result table */
+.mtable{width:100%;border-collapse:collapse;margin:14px 0}
+.mtable th,.mtable td{padding:10px 14px;text-align:left;border-bottom:1px solid #21262d}
+.mtable th{color:#8b949e;font-size:.82em;text-transform:uppercase;font-weight:600}
+.mtable td{font-size:.92em}
+.mtable .val{color:#58a6ff;font-weight:700;font-size:1.05em}
+.mtable .val.green{color:#3fb950}
+.mtable .val.orange{color:#f78166}
+
+/* Trajectory */
+.traj{margin:14px 0}
+.tstep{border-left:2px solid #30363d;margin-left:12px;padding:0 0 0 18px;position:relative;margin-bottom:2px}
+.tstep::before{content:"";position:absolute;left:-5px;top:12px;width:8px;height:8px;border-radius:50%;background:#30363d}
+.tstep.think::before{background:#8957e5}
+.tstep.cmd::before{background:#58a6ff}
+.tstep.success::before{background:#3fb950}
+.tstep.fail::before{background:#f85149}
+.tstep.partial::before{background:#d29922}
+.tstep-head{font-size:.82em;color:#8b949e;padding:6px 0 2px;cursor:pointer;user-select:none}
+.tstep-head:hover{color:#c9d1d9}
+.tstep-body{display:none;margin:4px 0 10px}
+.tstep-body.open{display:block}
+.tstep-label{font-size:.75em;padding:1px 8px;border-radius:8px;margin-left:6px}
+.tstep-label.think{background:#8957e533;color:#8957e5}
+.tstep-label.cmd{background:#58a6ff33;color:#58a6ff}
+.tstep-label.result{background:#3fb95033;color:#3fb950}
+
+pre{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:10px 12px;font-size:.82em;overflow-x:auto;margin:4px 0;font-family:"Fira Code",Consolas,monospace;color:#c9d1d9;white-space:pre-wrap;word-break:break-all}
+pre .hl{color:#f78166;font-weight:700}
+pre .ok{color:#3fb950;font-weight:700}
+
+/* Reward chart */
+.reward-chart{display:flex;align-items:end;gap:16px;height:160px;padding:20px;background:#161b22;border:1px solid #30363d;border-radius:8px;margin:14px 0}
+.rbar{display:flex;flex-direction:column;align-items:center;flex:1}
+.rbar-fill{width:40px;border-radius:4px 4px 0 0;transition:height .5s;position:relative}
+.rbar-fill.r1{background:linear-gradient(180deg,#d29922,#d29922aa);height:50%}
+.rbar-fill.r2{background:linear-gradient(180deg,#3fb950,#3fb950aa);height:100%}
+.rbar-label{margin-top:8px;font-size:.78em;color:#8b949e;text-align:center}
+.rbar-val{font-size:.85em;font-weight:700;margin-bottom:4px}
+.rbar-val.partial{color:#d29922}
+.rbar-val.success{color:#3fb950}
+
+/* Collapsible prompt */
+.prompt-toggle{background:#1f6feb33;border:1px solid #1f6feb55;color:#58a6ff;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:.9em;margin:14px 0 4px;display:inline-block;transition:all .2s}
+.prompt-toggle:hover{background:#1f6feb55;color:#f0f6fc}
+.prompt-content{display:none;margin:4px 0 14px}
+.prompt-content.open{display:block}
+.prompt-content pre{max-height:500px;overflow-y:auto;font-size:.8em;line-height:1.5;white-space:pre-wrap;word-break:break-all}
+
+footer{text-align:center;padding:30px;border-top:1px solid #21262d;color:#484f58;font-size:.85em;margin-top:40px}
+
+@media(max-width:768px){
+  .mg{grid-template-columns:repeat(2,1fr)}
+  .igrid{grid-template-columns:1fr}
+  .tabs{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SWE-Test Demo</h1>
+  <p class="sub">面向代码智能体动态软件测试能力的评测基准 — 评估指标示例</p>
+</header>
+
+<div class="wrap" id="app"></div>
+
+<footer>SWE-Test Benchmark Demo &mdash; 香港大学系统与软件安全实验室</footer>
+
+<script>
+// ===== CASE DATA =====
+const CASES = [
+{
+  id:"case1", title:"案例1：深调用链语义推理",
+  tags:[{t:"libpng",c:"blue"},{t:"5层调用链",c:"orange"},{t:"272s",c:"blue"}],
+  program:"libpng（PNG图像解析库）",
+  branch:"png.c:1083 — png_colorspace_check_gamma",
+  condition:"(colorspace->flags & PNG_COLORSPACE_HAVE_GAMMA) != 0",
+  direction:"NOT TAKEN (FALSE) → TAKEN (TRUE)",
+  callstack:[
+    {name:"LLVMFuzzerTestOneInput",file:"libpng_read_fuzzer.cc",target:false},
+    {name:"png_read_info",file:"pngread.c",target:false},
+    {name:"png_handle_gAMA",file:"pngrutil.c",target:false},
+    {name:"png_colorspace_set_gamma",file:"png.c",target:false},
+    {name:"png_colorspace_check_gamma",file:"png.c:1083",target:true}
+  ],
+  difficulty:"该分支要求调用 png_colorspace_check_gamma 时，colorspace->flags 中已设置 PNG_COLORSPACE_HAVE_GAMMA 标志。但该函数从 png_handle_gAMA 调用——正常情况下 gAMA chunk 是首次设置 gamma，标志尚未设置。智能体需要理解：必须在 gAMA chunk 之前通过 sRGB chunk 预先设置 gamma 标志。这需要跨多层调用链的状态传递推理。",
+  metrics:{reach:"1",proximity:"N/A",time:"272秒",seed:"98 bytes, 1个种子"},
+  metricsHL:["mc-reach","mc-time"],
+  promptFile:"prompt_000_medium.txt",
+  prompt:`## Task
+
+Generate a test input that inverts a branch condition from FALSE to TRUE.
+
+## Hard Constraints
+- DO NOT read/list/search/cat any files or directories under \`/out/\` (including subdirectories).
+- Treat \`/out/\` binaries/scripts as black-box executables only.
+- The only allowed interaction with \`/out/\` is executing the provided verification command.
+
+### Branch Info
+- File: /src/libpng/png.c:1083
+- Function: png.c:png_colorspace_check_gamma
+- Current: NOT TAKEN (FALSE) -> Target: TAKEN (TRUE)
+- Trace: LLVMFuzzerTestOneInput -> OSS_FUZZ_png_read_info -> OSS_FUZZ_png_handle_gAMA -> OSS_FUZZ_png_colorspace_set_gamma -> png.c:png_colorspace_check_gamma
+
+### Code
+\`\`\`/src/libpng/png.c
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
+  if (size < kPngHeaderSize) {
+... (OMITTED CODE)
+  png_read_info(png_handler.png_ptr, png_handler.info_ptr);
+...
+THEN REACHING png_handle_gAMA:
+png_handle_gAMA(png_structrp png_ptr, png_inforp info_ptr, png_uint_32 length)
+{
+   png_fixed_point igamma;
+   png_byte buf[4];
+   ...
+   png_colorspace_set_gamma(png_ptr, &png_ptr->colorspace, igamma);
+...
+THEN REACHING png_colorspace_set_gamma:
+png_colorspace_set_gamma(png_const_structrp png_ptr,
+    png_colorspacerp colorspace, png_fixed_point gAMA)
+{
+   ...
+   else
+   {
+      if (png_colorspace_check_gamma(png_ptr, colorspace, gAMA,
+...
+THEN REACHING png_colorspace_check_gamma:
+png_colorspace_check_gamma(png_const_structrp png_ptr,
+    png_colorspacerp colorspace, png_fixed_point gAMA, int from)
+{
+   png_fixed_point gtest;
+
+// THE BRANCH CONDITION IN THE FOLLOWING LINE IS NOT TAKEN (FALSE):
+   if ((colorspace->flags & PNG_COLORSPACE_HAVE_GAMMA) != 0 &&
+\`\`\`
+
+### Call Stack
+  - LLVMFuzzerTestOneInput at libpng_read_fuzzer.cc:101-208
+  - OSS_FUZZ_png_read_info at pngread.c:91-262
+  - OSS_FUZZ_png_handle_gAMA at pngrutil.c:1118-1152
+  - OSS_FUZZ_png_colorspace_set_gamma at png.c:1113-1166
+  - png.c:png_colorspace_check_gamma at png.c:1069-1111
+
+### Verification
+\`\`\`bash
+python /out/verify_seed.py --question /tmp/question_000.json --seed /tmp/new_seed_000
+\`\`\`
+Expected output: "SUCCESS: Seed triggered the target branch! (reward=2)"`,
+  trajectory:[
+    {type:"think",text:"分析目标分支条件：(colorspace->flags & PNG_COLORSPACE_HAVE_GAMMA) != 0。需要在调用 png_colorspace_check_gamma 之前，colorspace 的 gamma 标志已经被设置。"},
+    {type:"think",text:"阅读 png_colorspace_set_gamma 源码，发现它在设置 gamma 前会调用 png_colorspace_check_gamma 检查是否已有 gamma。关键：需要让 HAVE_GAMMA 标志在 gAMA chunk 处理前就存在。"},
+    {type:"cmd",cmd:"grep -n 'PNG_COLORSPACE_HAVE_GAMMA' /src/libpng/png.c | head -20",out:"1083:   if ((colorspace->flags & PNG_COLORSPACE_HAVE_GAMMA) != 0 &&\n1107:      colorspace->flags |= PNG_COLORSPACE_HAVE_GAMMA;\n...",exit:0},
+    {type:"think",text:"发现 sRGB chunk 处理器会通过 png_colorspace_set_sRGB 间接设置 gamma 标志。如果 sRGB chunk 出现在 gAMA chunk 之前，gamma 标志就会预先设置。"},
+    {type:"cmd",cmd:"# 构造 PNG: IHDR → sRGB → gAMA → IDAT → IEND\npython3 -c \"...构造最小PNG...\" > /tmp/new_seed_000",out:"(写入 98 字节的 PNG 文件)",exit:0},
+    {type:"cmd",cmd:"python /out/verify_seed.py --question /tmp/question_000.json --seed /tmp/new_seed_000",out:"[coverage_reward] entered png_colorspace_check_gamma\n[coverage_reward] covered [1083, 7, 1083, 59]\n<span class='ok'>SUCCESS: Seed triggered the target branch! (reward=2)</span>",exit:0,reward:2}
+  ]
+},
+{
+  id:"case2", title:"案例2：快速精准边界构造",
+  tags:[{t:"libpng",c:"blue"},{t:"3层调用链",c:"blue"},{t:"96s",c:"green"}],
+  program:"libpng（PNG图像解析库）",
+  branch:"pngrutil.c:1978 — png_handle_bKGD",
+  condition:"buf[0] >= info_ptr->num_palette",
+  direction:"NOT TAKEN (FALSE) → TAKEN (TRUE)",
+  callstack:[
+    {name:"LLVMFuzzerTestOneInput",file:"libpng_read_fuzzer.cc",target:false},
+    {name:"png_read_info",file:"pngread.c",target:false},
+    {name:"png_handle_bKGD",file:"pngrutil.c:1978",target:true}
+  ],
+  difficulty:"bKGD chunk 指定 PNG 背景色。当 color_type=3（调色板模式）时，bKGD 第一个字节是调色板索引。分支检查索引是否超出调色板范围。智能体需要构造调色板条目极少但 bKGD 索引值很大的 PNG。",
+  metrics:{reach:"1",proximity:"N/A",time:"96秒",seed:"95 bytes, 1个种子"},
+  metricsHL:["mc-quality","mc-time"],
+  promptFile:"prompt_010_medium.txt",
+  prompt:`## Task
+
+Generate a test input that inverts a branch condition from FALSE to TRUE.
+
+## Hard Constraints
+- DO NOT read/list/search/cat any files or directories under \`/out/\`.
+- Treat \`/out/\` binaries/scripts as black-box executables only.
+
+### Branch Info
+- File: /src/libpng/pngrutil.c:1978
+- Function: OSS_FUZZ_png_handle_bKGD
+- Current: NOT TAKEN (FALSE) -> Target: TAKEN (TRUE)
+- Trace: LLVMFuzzerTestOneInput -> OSS_FUZZ_png_read_info -> OSS_FUZZ_png_handle_bKGD
+
+### Code
+\`\`\`/src/libpng/pngrutil.c
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
+  ...
+  png_read_info(png_handler.png_ptr, png_handler.info_ptr);
+...
+THEN REACHING png_handle_bKGD:
+png_handle_bKGD(png_structrp png_ptr, png_inforp info_ptr, png_uint_32 length)
+{
+   unsigned int truelen;
+   png_byte buf[6];
+   png_color_16 background;
+   ...
+   if (png_ptr->color_type == PNG_COLOR_TYPE_PALETTE)
+      truelen = 1;
+   ...
+   png_crc_read(png_ptr, buf, truelen);
+   ...
+   if (png_ptr->color_type == PNG_COLOR_TYPE_PALETTE)
+   {
+      background.index = buf[0];
+      if (info_ptr != NULL && info_ptr->num_palette != 0)
+      {
+// THE BRANCH CONDITION IN THE FOLLOWING LINE IS NOT TAKEN (FALSE):
+         if (buf[0] >= info_ptr->num_palette)
+\`\`\`
+
+### Call Stack
+  - LLVMFuzzerTestOneInput at libpng_read_fuzzer.cc:101-208
+  - OSS_FUZZ_png_read_info at pngread.c:91-262
+  - OSS_FUZZ_png_handle_bKGD at pngrutil.c:1919-2033
+
+### Verification
+\`\`\`bash
+python /out/verify_seed.py --question /tmp/question_010.json --seed /tmp/new_seed_010
+\`\`\`
+Expected output: "SUCCESS: Seed triggered the target branch! (reward=2)"`,
+  trajectory:[
+    {type:"think",text:"分析分支条件：buf[0] >= info_ptr->num_palette。需要 bKGD chunk 的第一个字节 >= 调色板条目数。"},
+    {type:"think",text:"策略：构造 color_type=3 的 PNG，PLTE 只含 1 个条目（num_palette=1），bKGD 索引设为 255。255 >= 1 即可触发。"},
+    {type:"cmd",cmd:"python3 -c \"...构造最小PNG...\" > /tmp/new_seed_010",out:"(写入 95 字节的 PNG 文件)",exit:0},
+    {type:"cmd",cmd:"python /out/verify_seed.py --question /tmp/question_010.json --seed /tmp/new_seed_010",out:"[coverage_reward] entered png_handle_bKGD\n[coverage_reward] covered [1978, ...]\n<span class='ok'>SUCCESS: Seed triggered the target branch! (reward=2)</span>",exit:0,reward:2}
+  ]
+},
+{
+  id:"case3", title:"案例3：渐进逼近与迭代探索",
+  tags:[{t:"QuickJS",c:"blue"},{t:"2层调用链",c:"blue"},{t:"分支逼近度",c:"orange"}],
+  program:"QuickJS（JavaScript引擎）",
+  branch:"quickjs.c:33673 — resolve_labels",
+  condition:"case OP_drop（switch-case 分支）",
+  direction:"NOT TAKEN (FALSE) → TAKEN (TRUE)",
+  callstack:[
+    {name:"LLVMFuzzerTestOneInput",file:"fuzz_eval.c",target:false},
+    {name:"resolve_labels",file:"quickjs.c:33673",target:true}
+  ],
+  difficulty:"resolve_labels 是 QuickJS 字节码优化器的核心函数，通过 switch-case 遍历字节码指令。目标要求生成的 JS 代码编译后产生 OP_drop 指令并在优化路径中被处理。智能体需理解 JS源码→字节码→resolve_labels优化 的编译管线。",
+  metrics:{reach:"1",proximity:"1.0 → 1.0 → 1.0 → 2.0",time:"~300秒",seed:"28 bytes, 4个种子"},
+  metricsHL:["mc-proximity","mc-quality"],
+  promptFile:"prompt_742_easy.txt",
+  prompt:`## Task
+
+Generate a test input that inverts a branch condition from FALSE to TRUE.
+
+## Hard Constraints
+- DO NOT read/list/search/cat any files or directories under \`/out/\`.
+- Treat \`/out/\` binaries/scripts as black-box executables only.
+
+### Branch Info
+- File: /src/quickjs/quickjs.c:33673
+- Function: quickjs.c:resolve_labels
+- Current: NOT TAKEN (FALSE) -> Target: TAKEN (TRUE)
+- Trace: LLVMFuzzerTestOneInput -> quickjs.c:resolve_labels
+
+### Code
+\`\`\`/src/quickjs/quickjs.c
+int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
+    if (size == 0) return 0;
+    JSRuntime *rt = JS_NewRuntime();
+    JSContext *ctx = JS_NewContext(rt);
+    ...
+    JSValue val = JS_Eval(ctx, (const char *)null_terminated_data,
+                          size, "<none>", JS_EVAL_TYPE_GLOBAL);
+    ...
+}
+...
+THEN REACHING resolve_labels:
+static __exception int resolve_labels(JSContext *ctx, JSFunctionDef *s)
+{
+    ...
+    for (pos = 0; pos < bc_len; pos = pos_next) {
+        int val;
+        op = bc_buf[pos];
+        len = opcode_info[op].size;
+        pos_next = pos + len;
+        switch(op) {
+        case OP_label: ...
+        case OP_call:
+        case OP_call_method:
+            { /* detect and transform tail calls */ ... }
+        case OP_return: ...
+        case OP_goto: ...
+// THE BRANCH CONDITION IN THE FOLLOWING LINE IS NOT TAKEN (FALSE):
+        case OP_drop:
+\`\`\`
+
+### Reference Seed
+\`\`\`
+function assert(actual, expected, message) {}
+var f = function f() {};
+assert(f.prototype.constructor, f, "prototype");
+\`\`\`
+
+### Verification
+\`\`\`bash
+python /out/verify_seed.py --question /tmp/question_742.json --seed /tmp/new_seed_742
+\`\`\`
+Expected output: "SUCCESS: Seed triggered the target branch! (reward=2)"`,
+  rewardHistory:[
+    {seed:"1;",reward:1,label:"进入函数，未覆盖分支"},
+    {seed:"1;2;",reward:1,label:"进入函数，未覆盖分支"},
+    {seed:"for(0;0;0){}",reward:1,label:"进入函数，未覆盖分支"},
+    {seed:"function f(){}\\nfor(f();0;0){}",reward:2,label:"成功到达目标分支！"}
+  ],
+  trajectory:[
+    {type:"think",text:"分析目标：case OP_drop 在 resolve_labels 的 switch 中。需要生成包含 OP_drop 字节码的 JS 代码。OP_drop 通常在表达式语句丢弃返回值时生成。"},
+    {type:"cmd",cmd:"cat > /tmp/new_seed_742 << 'EOF'\n1;\nEOF",out:"",exit:0},
+    {type:"cmd",cmd:"python /out/verify_seed.py --question /tmp/question_742.json --seed /tmp/new_seed_742",
+     out:"[coverage_reward] entered resolve_labels\n[coverage_reward] near resolve_labels [33673, 8, 33673, 20]\n<span class='hl'>PARTIAL: Entered target function but branch not covered (reward=1)</span>",exit:1,reward:1},
+    {type:"think",text:"reward=1：已进入 resolve_labels 但 case OP_drop 未命中。尝试多个表达式语句。"},
+    {type:"cmd",cmd:"cat > /tmp/new_seed_742 << 'EOF'\n1;2;\nEOF",out:"",exit:0},
+    {type:"cmd",cmd:"python /out/verify_seed.py --question /tmp/question_742.json --seed /tmp/new_seed_742",
+     out:"[coverage_reward] entered resolve_labels\n[coverage_reward] near resolve_labels [33673, 8, 33673, 20]\n<span class='hl'>PARTIAL: Entered target function but branch not covered (reward=1)</span>",exit:1,reward:1},
+    {type:"think",text:"仍然 reward=1。简单表达式语句的 OP_drop 可能在编译早期被优化掉，未进入 resolve_labels。尝试 for 循环。"},
+    {type:"cmd",cmd:"cat > /tmp/new_seed_742 << 'EOF'\nfor(0;0;0){}\nEOF",out:"",exit:0},
+    {type:"cmd",cmd:"python /out/verify_seed.py --question /tmp/question_742.json --seed /tmp/new_seed_742",
+     out:"[coverage_reward] entered resolve_labels\n[coverage_reward] near resolve_labels [33673, 8, 33673, 20]\n<span class='hl'>PARTIAL: Entered target function but branch not covered (reward=1)</span>",exit:1,reward:1},
+    {type:"think",text:"第3次失败。开始深入阅读 resolve_labels 源码，分析 OP_drop 在优化路径中的具体触发条件。"},
+    {type:"cmd",cmd:"nl -ba /src/quickjs/quickjs.c | sed -n '33430,33505p'",
+     out:"33430  case OP_call:\n33431  case OP_call_method:\n...\n33460  /* detect and transform tail calls */\n...\n33490  case OP_drop:\n33491      ...",exit:0},
+    {type:"think",text:"关键发现：在 resolve_labels 中，OP_drop 紧跟在 OP_call/OP_call_method 的处理之后。需要构造\"函数调用结果被丢弃\"的模式——即函数调用后跟 OP_drop。"},
+    {type:"cmd",cmd:"cat > /tmp/new_seed_742 << 'EOF'\nfunction f(){}\nfor(f();0;0){}\nEOF",out:"",exit:0},
+    {type:"cmd",cmd:"python /out/verify_seed.py --question /tmp/question_742.json --seed /tmp/new_seed_742",
+     out:"[coverage_reward] entered resolve_labels\n[coverage_reward] covered resolve_labels [33673, 8, 33673, 20]\n<span class='ok'>SUCCESS: Seed triggered the target branch! (reward=2)</span>",exit:0,reward:2}
+  ]
+}
+];
+
+// ===== RENDER FUNCTIONS =====
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function renderMetrics(){
+  return `<section>
+  <h2>评估指标体系</h2>
+  <div class="mg">
+    <div class="mc" id="mc-reach"><div class="icon">🎯</div><h3>目标到达率</h3><p>是否成功到达指定目标分支（0/1）</p></div>
+    <div class="mc" id="mc-proximity"><div class="icon">📐</div><h3>分支逼近度</h3><p>未到达时，衡量执行路径与目标的接近程度</p></div>
+    <div class="mc" id="mc-time"><div class="icon">⏱️</div><h3>任务完成耗时</h3><p>从任务下发到完成的端到端耗时</p></div>
+    <div class="mc" id="mc-quality"><div class="icon">🧬</div><h3>种子质量</h3><p>种子数量、大小、是否触发额外崩溃</p></div>
+  </div></section>`;
+}
+
+function renderTabs(){
+  return `<div class="tabs">${CASES.map((c,i)=>
+    `<button class="tab${i===0?' on':''}" data-idx="${i}">${c.title}</button>`
+  ).join('')}</div>`;
+}
+
+function renderCallstack(cs){
+  return `<div class="callstack">${cs.map((c,i)=>
+    `<div class="level${c.target?' target':''}" style="padding-left:${i*20}px">${i>0?'<span class="arrow">→ </span>':''}${c.name} <span style="color:#484f58;font-size:.85em">(${c.file})</span>${c.target?' ← 目标分支':''}</div>`
+  ).join('')}</div>`;
+}
+
+function renderTrajectory(traj){
+  let h='<div class="traj">';
+  let stepNum=0;
+  traj.forEach((s,i)=>{
+    if(s.type==='think'){
+      h+=`<div class="tstep think">
+        <div class="tstep-head" onclick="this.nextElementSibling.classList.toggle('open')">
+          💭 智能体推理 <span class="tstep-label think">Thinking</span></div>
+        <div class="tstep-body"><p style="color:#d2a8ff;font-size:.88em">${esc(s.text)}</p></div></div>`;
+    } else if(s.type==='cmd'){
+      stepNum++;
+      let cls='cmd';
+      if(s.reward===2) cls='success';
+      else if(s.reward===1) cls='partial';
+      else if(s.exit!==0 && s.reward===undefined) cls='fail';
+      let rewardTag='';
+      if(s.reward===2) rewardTag=' <span class="tag green">reward=2 ✓</span>';
+      else if(s.reward===1) rewardTag=' <span class="tag orange">reward=1</span>';
+      h+=`<div class="tstep ${cls}">
+        <div class="tstep-head" onclick="this.nextElementSibling.classList.toggle('open')">
+          ⚡ Step ${stepNum}: 执行命令 <span class="tstep-label cmd">Command</span>${rewardTag}</div>
+        <div class="tstep-body${s.reward!==undefined?' open':''}">
+          <pre>$ ${esc(s.cmd)}</pre>
+          ${s.out?`<pre>${s.out}</pre>`:''}
+        </div></div>`;
+    }
+  });
+  h+='</div>';
+  return h;
+}
+
+function renderRewardChart(rh){
+  if(!rh) return '';
+  let h='<h3>Reward 变化过程</h3><p style="color:#8b949e;font-size:.88em;margin:6px 0 10px">智能体每次构造不同的测试输入（种子），提交给目标程序执行，根据返回的 reward 值判断是否接近目标分支。</p><div class="reward-chart">';
+  rh.forEach((r,i)=>{
+    let cls=r.reward>=2?'r2':'r1';
+    let vcls=r.reward>=2?'success':'partial';
+    let pct=r.reward>=2?'100%':'50%';
+    h+=`<div class="rbar">
+      <div class="rbar-val ${vcls}">reward=${r.reward}</div>
+      <div class="rbar-fill ${cls}" style="height:${pct}"></div>
+      <div class="rbar-label">#${i+1}<br><span style="color:#58a6ff;font-size:.7em">种子内容:</span><br><code style="font-size:.75em">${esc(r.seed)}</code><br><span style="font-size:.75em">${r.label}</span></div>
+    </div>`;
+  });
+  h+='</div>';
+  return h;
+}
+// renderMetricsTable
+function renderMetricsTable(m){
+  return `<table class="mtable">
+  <tr><th>指标</th><th>值</th><th>说明</th></tr>
+  <tr><td>🎯 目标到达率</td><td class="val green">${m.reach}</td><td>成功到达目标分支</td></tr>
+  <tr><td>📐 分支逼近度</td><td class="val${m.proximity!=='N/A'?' orange':''}">${m.proximity}</td><td>${m.proximity==='N/A'?'已到达，无需计算':'展示渐进逼近过程'}</td></tr>
+  <tr><td>⏱️ 任务完成耗时</td><td class="val">${m.time}</td><td>端到端耗时</td></tr>
+  <tr><td>🧬 种子质量</td><td class="val">${m.seed}</td><td>生成种子的数量与大小</td></tr>
+  </table>`;
+}
+
+function renderPrompt(c){
+  let id='prompt-'+c.id;
+  return `<h3>任务 Prompt</h3>
+    <div class="prompt-toggle" onclick="document.getElementById('${id}').classList.toggle('open')">
+      📄 ${c.promptFile}（点击展开/收起）
+    </div>
+    <div class="prompt-content" id="${id}"><pre>${esc(c.prompt)}</pre></div>`;
+}
+
+function renderCase(c){
+  let h=`<div><h2>${c.title}</h2>
+    <div style="margin-bottom:16px">${c.tags.map(t=>`<span class="tag ${t.c}">${t.t}</span>`).join('')}</div>
+    <div class="igrid">
+      <div class="ibox"><h4>目标程序</h4><p>${c.program}</p></div>
+      <div class="ibox"><h4>目标分支</h4><p><code>${c.branch}</code></p></div>
+      <div class="ibox"><h4>分支条件</h4><p><code>${esc(c.condition)}</code></p></div>
+      <div class="ibox"><h4>方向</h4><p>${c.direction}</p></div>
+    </div>`;
+  h+=`<h3>调用链</h3>${renderCallstack(c.callstack)}`;
+  h+=`<h3>难点分析</h3><div class="ibox"><p>${c.difficulty}</p></div>`;
+  if(c.prompt) h+=renderPrompt(c);
+  if(c.rewardHistory) h+=renderRewardChart(c.rewardHistory);
+  h+=`<h3>智能体执行轨迹</h3>${renderTrajectory(c.trajectory)}`;
+  h+=`<h3>评估指标结果</h3>${renderMetricsTable(c.metrics)}</div>`;
+  return h;
+}
+
+// ===== MAIN APP =====
+let curIdx=0;
+function switchCase(idx){
+  curIdx=idx;
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('on',i===idx));
+  document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('on',i===idx));
+  // highlight relevant metric cards
+  document.querySelectorAll('.mc').forEach(m=>m.classList.remove('hl'));
+  (CASES[idx].metricsHL||[]).forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.add('hl');
+  });
+}
+
+function init(){
+  const app=document.getElementById('app');
+  let h=renderMetrics();
+  h+=renderTabs();
+  CASES.forEach((c,i)=>{
+    h+=`<div class="panel${i===0?' on':''}">${renderCase(c)}</div>`;
+  });
+  app.innerHTML=h;
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click',()=>switchCase(+t.dataset.idx));
+  });
+  switchCase(0);
+}
+init();
+</script>
+</body>
+</html>

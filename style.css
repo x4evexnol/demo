@@ -1,0 +1,128 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #0d1117;
+  color: #c9d1d9;
+  line-height: 1.6;
+}
+
+header {
+  text-align: center;
+  padding: 40px 20px 20px;
+  border-bottom: 1px solid #21262d;
+}
+header h1 { color: #58a6ff; font-size: 2.2em; }
+header .subtitle { color: #8b949e; margin-top: 8px; font-size: 1.1em; }
+
+h2 { color: #f0f6fc; margin-bottom: 16px; font-size: 1.4em; }
+h3 { color: #58a6ff; margin-bottom: 8px; }
+
+#metrics-overview {
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 0 20px;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.metric-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  cursor: default;
+}
+.metric-card:hover {
+  border-color: #58a6ff;
+  box-shadow: 0 0 12px rgba(88,166,255,0.15);
+}
+.metric-card.highlight {
+  border-color: #f78166;
+  box-shadow: 0 0 16px rgba(247,129,102,0.25);
+}
+.metric-icon { font-size: 2em; margin-bottom: 8px; }
+.metric-card h3 { font-size: 1em; color: #f0f6fc; }
+.metric-card p { font-size: 0.82em; color: #8b949e; margin-top: 4px; }
+
+/* Tabs */
+#case-tabs {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+.tab-bar {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #30363d;
+}
+.tab {
+  background: none;
+  border: none;
+  color: #8b949e;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 0.95em;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.tab:hover { color: #c9d1d9; }
+.tab.active {
+  color: #58a6ff;
+  border-bottom-color: #58a6ff;
+}
+
+/* Case panels */
+.case-panel {
+  display: none;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+.case-panel.active { display: block; }
+
+/* Case header */
+.case-header {
+  margin-bottom: 24px;
+}
+.case-header h2 { margin-bottom: 4px; }
+.case-header .case-tag {
+  display: inline-block;
+  background: #1f6feb33;
+  color: #58a6ff;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  margin-right: 6px;
+}
+.case-header .case-tag.orange {
+  background: #f7816633;
+  color: #f78166;
+}
+
+/* Info grid */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.info-box {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 16px;
+}
+.info-box h4 {
+  color: #8b949e;
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
