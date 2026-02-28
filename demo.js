@@ -3,7 +3,7 @@ const STEPS = [{"type": "reasoning", "text": "Preparing to read task file"}, {"t
 
 const ANNOTATIONS = {"0": "开始：读取任务 Prompt。当前版本的 Prompt 包含了详细的静态分析结果（调用链、目标函数代码片段等），后续版本的输入会更精简", "12": "第1次验证：reward=1（进入函数但未覆盖目标 case）", "14": "尝试简单变体仍失败，转向阅读源码", "28": "转折：进入 resolve_labels 深挖 OP_drop 的优化/匹配逻辑", "42": "关键洞察：需要构造'函数调用结果被丢弃'→ OP_call 后接 OP_drop", "44": "构造最终种子：function f(){} + for(f();0;0){}", "46": "最终验证：SUCCESS（reward=2）"};
 
-const REWARD_HISTORY = [{"seed": "1;", "reward": 1, "label": "进入函数，未覆盖分支"}, {"seed": "1;2;", "reward": 1, "label": "进入函数，未覆盖分支"}, {"seed": "for(0;0;0){}", "reward": 1, "label": "进入函数，未覆盖分支"}, {"seed": "function f(){}\\nfor(f();0;0){}", "reward": 2, "label": "成功到达目标分支！"}];
+const REWARD_HISTORY = [{"seed": "1;", "reward": 1, "size": 2, "label": "进入函数，未覆盖分支"}, {"seed": "1;2;", "reward": 1, "size": 4, "label": "进入函数，未覆盖分支"}, {"seed": "for(0;0;0){}", "reward": 1, "size": 12, "label": "进入函数，未覆盖分支"}, {"seed": "function f(){}\\nfor(f();0;0){}", "reward": 2, "size": 28, "label": "成功到达目标分支！"}];
 
 const METRICS = {"reach": "1", "proximity": "1.0 → 1.0 → 1.0 → 2.0", "time": "~300秒", "seed": "28 bytes, 4个种子"};
 
@@ -28,7 +28,20 @@ function renderHeader(){
 }
 
 function renderTimeline(){
-  let h='<h3>智能体完整执行过程</h3>';
+  // Build progress chain from ANNOTATIONS
+  let chain='<div class="progress-chain">';
+  const annKeys=Object.keys(ANNOTATIONS).map(Number).sort((a,b)=>a-b);
+  annKeys.forEach(function(idx,j){
+    let isMilestone=idx===46;
+    chain+='<div class="progress-node'+(isMilestone?' milestone':'')+'" onclick="document.getElementById(\'tl-step-'+idx+'\').scrollIntoView({behavior:\'smooth\',block:\'center\'})">';
+    chain+='<div class="progress-node-dot"></div>';
+    chain+='<div class="progress-node-label">'+esc(ANNOTATIONS[String(idx)])+'</div>';
+    chain+='</div>';
+    if(j<annKeys.length-1) chain+='<div class="progress-connector"></div>';
+  });
+  chain+='</div>';
+
+  let h='<div class="timeline-header"><h3>智能体完整执行过程</h3>'+chain+'</div>';
   h+='<p style="color:#8b949e;font-size:.85em;margin:-4px 0 12px">数据来源：Codex 原始执行日志 (prompt_742_easy/attempt_1.jsonl)，共 '+STEPS.length+' 步</p>';
   h+='<div class="timeline">';
 
@@ -44,7 +57,7 @@ function renderTimeline(){
     else if(isPartial) cls='verify-fail';
     if(i===1 && s.type==='command' && (s.cmd||'').indexOf('cat')>=0 && (s.cmd||'').indexOf('prompt_742_easy')>=0) cls='prompt';
 
-    h+='<div class="tl-step '+cls+'">';
+    h+='<div id="tl-step-'+i+'" class="tl-step '+cls+'">';
 
     // Head (still clickable to collapse if desired)
     h+='<div class="tl-head" onclick="this.nextElementSibling.classList.toggle(\'open\')">';
@@ -100,7 +113,7 @@ function renderRewardChart(){
     h+='<div class="rbar">';
     h+='<div class="rbar-val '+vcls+'">reward='+r.reward+'</div>';
     h+='<div class="rbar-fill '+cls+'" style="height:'+pct+'"></div>';
-    h+='<div class="rbar-label">#'+(i+1)+'<br><code style="font-size:.75em">'+esc(r.seed)+'</code><br><span style="font-size:.75em">'+r.label+'</span></div>';
+    h+='<div class="rbar-label">#'+(i+1)+'<br><code style="font-size:.75em">'+esc(r.seed)+'</code><br><span style="font-size:.7em;color:#57606a">'+r.size+' bytes</span><br><span style="font-size:.75em">'+r.label+'</span></div>';
     h+='</div>';
   });
   h+='</div>';

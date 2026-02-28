@@ -25,8 +25,42 @@ h4{color:#8b949e;font-size:.82em;text-transform:uppercase;letter-spacing:.5px;ma
 
 pre{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:10px 12px;font-size:.82em;overflow-x:auto;margin:4px 0;font-family:"Fira Code",Consolas,monospace;color:#c9d1d9;white-space:pre-wrap;word-break:break-all}
 
+/* Light theme overrides */
+body.light{background:#f6f8fa;color:#24292f}
+body.light header{border-bottom-color:#d0d7de}
+body.light h2{color:#24292f}
+body.light h3{color:#0969da}
+body.light h4{color:#57606a}
+body.light .ibox{background:#fff;border-color:#d0d7de}
+body.light pre{background:#f6f8fa;border-color:#d0d7de;color:#24292f}
+body.light .tl-step{border-left-color:#d0d7de}
+body.light .tl-head{color:#57606a}
+body.light .tl-summary{background:#fff;border-color:#d0d7de;color:#6639ba}
+body.light .reward-chart{background:#fff;border-color:#d0d7de}
+body.light .mtable th,.body.light .mtable td{border-bottom-color:#d0d7de}
+body.light footer{border-top-color:#d0d7de;color:#57606a}
+body.light .tag.blue{background:#ddf4ff;color:#0969da}
+body.light .tag.orange{background:#fff8c5;color:#9a6700}
+body.light .tag.green{background:#dafbe1;color:#1a7f37}
+body.light .exit-tag.ok{background:#dafbe1;color:#1a7f37}
+body.light .exit-tag.fail{background:#ffebe9;color:#cf222e}
+
+#theme-btn{position:fixed;top:16px;right:20px;background:#21262d;color:#c9d1d9;border:1px solid #30363d;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:.85em;z-index:999;transition:all .2s}
+body.light #theme-btn{background:#fff;color:#24292f;border-color:#d0d7de}
+
 /* Timeline */
 .timeline{margin:14px 0}
+.timeline-header{display:flex;align-items:center;gap:20px;margin-bottom:20px}
+.timeline-header h3{margin:0}
+.progress-chain{display:flex;align-items:center;gap:8px;flex:1;overflow-x:auto;padding:10px 0}
+.progress-node{display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:all .2s}
+.progress-node-dot{width:12px;height:12px;border-radius:50%;background:#0969da;border:2px solid #fff;box-shadow:0 0 0 2px #0969da}
+.progress-node-label{font-size:.7em;color:#57606a;margin-top:4px;max-width:80px;text-align:center;line-height:1.2}
+.progress-node:hover .progress-node-dot{transform:scale(1.3)}
+.progress-node:hover .progress-node-label{color:#0969da}
+.progress-connector{width:40px;height:2px;background:#d0d7de;margin:0 -8px}
+.progress-node.milestone .progress-node-dot{width:16px;height:16px;background:#1a7f37;box-shadow:0 0 0 2px #1a7f37}
+.progress-node.milestone .progress-node-label{font-weight:600;color:#1a7f37}
 .tl-step{border-left:2px solid #30363d;margin-left:12px;padding:0 0 0 18px;position:relative;margin-bottom:2px}
 .tl-step::before{content:"";position:absolute;left:-5px;top:12px;width:8px;height:8px;border-radius:50%;background:#30363d}
 .tl-step.reasoning::before{background:#8957e5}
@@ -79,7 +113,7 @@ footer{text-align:center;padding:30px;border-top:1px solid #21262d;color:#484f58
 @media(max-width:768px){.igrid{grid-template-columns:1fr}}
 </style>
 </head>
-<body>
+<body class="light">
 
 <header>
   <h1>SWE-Test Demo</h1>
