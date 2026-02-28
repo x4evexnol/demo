@@ -68,7 +68,16 @@ function renderTimeline(){
     if(ann) h+='<div class="tl-summary">💡 '+esc(ann)+'</div>';
     if(s.type==='command'){
       h+='<pre>$ '+esc(s.cmd||'')+'</pre>';
-      if(s.out) h+='<pre>'+esc(s.out)+'</pre>';
+      if(s.out){
+        let isPrompt=i===1&&(s.cmd||'').indexOf('prompt_742_easy')>=0;
+        if(isPrompt){
+          let pid='prompt-out-'+i;
+          h+='<div onclick="var e=document.getElementById(\''+pid+'\');e.style.display=e.style.display===\'none\'?\'block\':\'none\'" style="cursor:pointer;color:#58a6ff;font-size:.82em;margin:4px 0">📄 点击展开/折叠完整 Prompt（'+s.out.length+' 字符）</div>';
+          h+='<pre id="'+pid+'" style="display:none">'+esc(s.out)+'</pre>';
+        } else {
+          h+='<pre>'+esc(s.out)+'</pre>';
+        }
+      }
     } else if(s.type==='message'){
       if(s.text) h+='<pre>'+esc(s.text)+'</pre>';
       else h+='<pre>(空)</pre>';
